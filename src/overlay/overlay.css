@@ -1,0 +1,25 @@
+#impulse-check-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  color: white;
+  z-index: 999999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+#impulse-check-overlay .box {
+  width: 420px;
+  background: #111;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+#impulse-check-overlay button {
+  margin-top: 16px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
