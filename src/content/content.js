@@ -1,5 +1,7 @@
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
+const KEYWORDS = ["buy", "cart", "checkout", "place", "order"];
+
 function getProductData() {
   return {
     title: document.querySelector("#productTitle")?.innerText || "Unknown",
@@ -18,49 +20,62 @@ function isBlocked(callback) {
 }
 
 function showOverlay() {
+  // prevent duplicate injection
+  if (document.getElementById("impulse-check-overlay")) return;
+
   const script = document.createElement("script");
-  script.src = chrome.runtime.getURL("overlay/overlay.js");
+  script.src = chrome.runtime.getURL("src/overlay/overlay.js");
 
   const style = document.createElement("link");
   style.rel = "stylesheet";
-  style.href = chrome.runtime.getURL("overlay/overlay.css");
+  style.href = chrome.runtime.getURL("src/overlay/overlay.css");
 
   document.body.appendChild(style);
   document.body.appendChild(script);
 }
 
-function intercept() {
-  const buyNow = document.querySelector("#buy-now-button");
-  const addToCart = document.querySelector("#add-to-cart-button");
+function isPurchaseIntent(el) {
+  const text = (el.innerText || el.value || "").toLowerCase();
+  return KEYWORDS.some((k) => text.includes(k));
+}
 
-  [buyNow, addToCart].forEach((btn) => {
-    if (!btn) return;
+function interceptClick(e) {
+  const el = e.target.closest("button, input, a");
+  if (!el) return;
 
-    btn.addEventListener(
-      "click",
-      (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+  const url = window.location.href;
+  const inCheckout = url.includes("/checkout") || url.includes("/gp/buy");
+  const inCart = url.includes("/cart");
 
-        const item = getProductData();
+  const intent = isPurchaseIntent(el);
 
-        chrome.storage.local.set({
-          pendingItem: {
-            ...item,
-            timestamp: Date.now()
-          }
-        });
+  if (!intent && !inCheckout && !inCart) return;
 
-        showOverlay();
-      },
-      true
-    );
+  isBlocked((blocked) => {
+    // Always stop the action first
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!blocked) {
+      const item = getProductData();
+
+      chrome.storage.local.set({
+        pendingItem: {
+          ...item,
+          timestamp: Date.now()
+        }
+      });
+    }
+
+    showOverlay();
   });
 }
 
 function init() {
-  intercept();
+  // global interception layer (capture phase)
+  document.addEventListener("click", interceptClick, true);
 
+  // safety net: enforce cooldown on page load
   isBlocked((blocked) => {
     if (blocked) showOverlay();
   });
