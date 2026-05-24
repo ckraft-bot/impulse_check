@@ -1,11 +1,5 @@
-export function setItem(key, value) {
-  chrome.storage.local.set({ [key]: value });
-}
+// content.js
+import { getItem, setItem } from "../utils/storage.js";
 
-export function getItem(key, cb) {
-  chrome.storage.local.get([key], (res) => cb(res[key]));
-}
-
-export function removeItem(key) {
-  chrome.storage.local.remove([key]);
-}
+const item = await getItem("pendingItem");
+await setItem("pendingItem", { ...data, timestamp: Date.now() });

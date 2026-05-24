@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Interrupts impulse buying with a 24-hour cooldown before purchase.",
 
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "alarms"],
   "host_permissions": ["https://*.amazon.com/*"],
 
   "background": {
@@ -20,7 +20,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["src/overlay/*"],
+      "resources": ["src/overlay/overlay.css"],
       "matches": ["https://*.amazon.com/*"]
     }
   ],
