@@ -1,10 +1,10 @@
-const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+// const COOLDOWN_MS = 24 * 60 * 60 * 1000; // prod
+const COOLDOWN_MS = 1 * 60 * 1000; // testing
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Impulse Check installed");
 });
 
-// When content.js sets a new pendingItem, schedule expiry and update badge
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || !changes.pendingItem) return;
 
@@ -12,7 +12,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
   if (newValue && !oldValue) {
     // New cooldown started — set alarm and badge
-    chrome.alarms.create("cooldownExpiry", { delayInMinutes: 24 * 60 });
+    // chrome.alarms.create("cooldownExpiry", { delayInMinutes: 24 * 60 }); // prod
+    chrome.alarms.create("cooldownExpiry", { delayInMinutes: 1 }); // testing
     chrome.action.setBadgeText({ text: "⏳" });
     chrome.action.setBadgeBackgroundColor({ color: "#e67e22" });
   }
@@ -23,7 +24,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
   }
 });
 
-// Alarm fires after 24h — clear the pending item
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "cooldownExpiry") {
     chrome.storage.local.remove("pendingItem");
