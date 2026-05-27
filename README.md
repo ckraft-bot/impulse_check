@@ -28,7 +28,7 @@ loop before it completes.
 
 ## Features (V1)
 
-- Intercepts "Buy Now" and "Add to Cart" on Amazon
+- Intercepts "Buy Now" and "Place Your Order" on Amazon
 - Blocks immediate purchase flow with a full-screen reflection overlay
 - Global 24-hour cooldown (resets after 24h via `chrome.alarms`)
 - Extension icon badge shows when a cooldown is active

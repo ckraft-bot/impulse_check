@@ -1,7 +1,7 @@
 // const COOLDOWN_MS = 24 * 60 * 60 * 1000; // for prod it'll be 24 hours
 const COOLDOWN_MS = 1 * 60 * 1000; // for testing let's shorten to 1 min
 
-const KEYWORDS = ["buy", "cart", "checkout", "place", "order"];
+const KEYWORDS = ["buy now", "place your order", "place order"];
 
 // In-memory cache so interceptClick can act synchronously
 let blockedState = false;
@@ -69,12 +69,10 @@ function interceptClick(e) {
   if (!el) return;
 
   const url = window.location.href;
-  const inCheckout = url.includes("/checkout") || url.includes("/gp/buy");
-  const inCart = url.includes("/cart");
   const intent = isPurchaseIntent(el);
+  const inCheckout = url.includes("/checkout") || url.includes("/gp/buy");
 
-  if (!intent && !inCheckout && !inCart) return;
-
+  if (!intent && !inCheckout) return;
   // Synchronous — must happen before any async work
   e.preventDefault();
   e.stopPropagation();

@@ -1,7 +1,9 @@
 #impulse-check-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: white;
   z-index: 999999;
   display: flex;
@@ -11,15 +13,55 @@
 }
 
 #impulse-check-overlay .box {
-  width: 420px;
-  background: #111;
-  padding: 24px;
-  border-radius: 12px;
+  width: 580px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 48px;
+  border-radius: 20px;
   text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+#impulse-check-overlay h1 {
+  font-size: 28px;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+#impulse-check-overlay p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+#impulse-check-overlay .questions {
+  margin: 28px 0;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#impulse-check-overlay .questions p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 8px 0;
 }
 
 #impulse-check-overlay button {
-  margin-top: 16px;
-  padding: 10px 16px;
+  margin-top: 24px;
+  padding: 14px 40px;
+  font-size: 15px;
   cursor: pointer;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+#impulse-check-overlay button:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
