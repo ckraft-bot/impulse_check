@@ -1,5 +1,9 @@
-const COOLDOWN_MS = 24 * 60 * 60 * 1000; // prod
-// const COOLDOWN_MS = 1 * 60 * 1000; // testing
+// src/background/service_worker.js
+
+import { removeItem } from "../utils/storage.js";
+
+const COOLDOWN_MINUTES = 24 * 60; // prod
+// const COOLDOWN_MINUTES = 1; // testing
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Impulse Check installed");
@@ -8,24 +12,24 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || !changes.pendingItem) return;
 
-  const { newValue, oldValue } = changes.pendingItem;
+  const { newValue } = changes.pendingItem;
 
-  if (newValue && !oldValue) {
-    // New cooldown started — set alarm and badge
-    chrome.alarms.create("cooldownExpiry", { delayInMinutes: 24 * 60 }); // prod
-    // chrome.alarms.create("cooldownExpiry", { delayInMinutes: 1 }); // testing
-    chrome.action.setBadgeText({ text: "⏳" });
+  if (newValue) {
+    chrome.alarms.clear("cooldownExpiry", () => {
+      chrome.alarms.create("cooldownExpiry", { delayInMinutes: COOLDOWN_MINUTES });
+    });
+    chrome.action.setBadgeText({ text: "24h" });
     chrome.action.setBadgeBackgroundColor({ color: "#e67e22" });
-  }
-
-  if (!newValue) {
-    // Cooldown cleared — remove badge
+  } else {
     chrome.action.setBadgeText({ text: "" });
   }
 });
 
-chrome.alarms.onAlarm.addListener((alarm) => {
-  if (alarm.name === "cooldownExpiry") {
-    chrome.storage.local.remove("pendingItem");
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== "cooldownExpiry") return;
+  try {
+    await removeItem("pendingItem");
+  } catch (err) {
+    console.error("Failed to clear pendingItem:", err);
   }
 });

@@ -1,3 +1,5 @@
+/* src/overlay/overlay.css */
+
 #impulse-check-overlay {
   position: fixed;
   inset: 0;
@@ -9,11 +11,20 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  box-sizing: border-box;
+  padding: 16px; /* breathing room on small screens */
+}
+
+#impulse-check-overlay *,
+#impulse-check-overlay *::before,
+#impulse-check-overlay *::after {
+  box-sizing: inherit;
 }
 
 #impulse-check-overlay .box {
-  width: 580px;
+  width: 100%;
+  max-width: 580px; /* fluid on small screens, capped on large */
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(20px);
@@ -26,14 +37,14 @@
 
 #impulse-check-overlay h1 {
   font-size: 28px;
-  margin-bottom: 12px;
+  margin: 0 0 12px 0; /* reset top margin */
   letter-spacing: 0.5px;
 }
 
 #impulse-check-overlay p {
   font-size: 16px;
   color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
 }
 
 #impulse-check-overlay .questions {
@@ -64,4 +75,9 @@
 
 #impulse-check-overlay button:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+#impulse-check-overlay button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
 }

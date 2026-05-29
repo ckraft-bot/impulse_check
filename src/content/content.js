@@ -1,9 +1,9 @@
-const COOLDOWN_MS = 24 * 60 * 60 * 1000; // for prod it'll be 24 hours
-// const COOLDOWN_MS = 1 * 60 * 1000; // for testing let's shorten to 1 min
+// src/content/content.js
+
+import { getItem, setItem, removeItem } from "../utils/storage.js";
 
 const KEYWORDS = ["buy now", "place your order", "place order"];
 
-// In-memory cache so interceptClick can act synchronously
 let blockedState = false;
 
 function getProductData() {
@@ -14,28 +14,54 @@ function getProductData() {
   };
 }
 
-function loadBlockedState(callback) {
-  chrome.storage.local.get(["pendingItem"], (res) => {
-    if (!res.pendingItem) {
+function getTimeRemaining(timestamp) {
+  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  const elapsed = Date.now() - timestamp;
+  const remaining = COOLDOWN_MS - elapsed;
+  if (remaining <= 0) return null;
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+}
+
+async function loadBlockedState(callback) {
+  try {
+    const pendingItem = await getItem("pendingItem");
+
+    if (!pendingItem) {
       blockedState = false;
-    } else {
-      const diff = Date.now() - res.pendingItem.timestamp;
-      blockedState = diff < COOLDOWN_MS;
+      if (callback) callback(false, null);
+      return;
     }
-    if (callback) callback(blockedState);
-  });
+
+    const timeRemaining = getTimeRemaining(pendingItem.timestamp);
+
+    if (!timeRemaining) {
+      await removeItem("pendingItem");
+      blockedState = false;
+      if (callback) callback(false, null);
+      return;
+    }
+
+    blockedState = true;
+    if (callback) callback(true, timeRemaining);
+  } catch (err) {
+    console.error("Failed to read storage:", err);
+    blockedState = false;
+    if (callback) callback(false, null);
+  }
 }
 
 function injectOverlayCSS() {
   if (document.getElementById("impulse-check-style")) return;
-  const style = document.createElement("link");
-  style.id = "impulse-check-style";
-  style.rel = "stylesheet";
-  style.href = chrome.runtime.getURL("src/overlay/overlay.css");
-  document.head.appendChild(style);
+  const link = document.createElement("link");
+  link.id = "impulse-check-style";
+  link.rel = "stylesheet";
+  link.href = chrome.runtime.getURL("src/overlay/overlay.css");
+  document.head.appendChild(link);
 }
 
-function showOverlay() {
+function showOverlay(timeRemaining = "24h 0m") {
   if (document.getElementById("impulse-check-overlay")) return;
 
   injectOverlayCSS();
@@ -45,7 +71,7 @@ function showOverlay() {
   overlay.innerHTML = `
     <div class="box">
       <h1>Impulse Check</h1>
-      <p>This purchase is on a 24-hour hold.</p>
+      <p>This purchase is on hold for <strong>${timeRemaining}</strong>.</p>
       <div class="questions">
         <p>Do you already own something similar?</p>
         <p>Are you bored right now?</p>
@@ -64,7 +90,7 @@ function isPurchaseIntent(el) {
   return KEYWORDS.some((k) => text.includes(k));
 }
 
-function interceptClick(e) {
+async function interceptClick(e) {
   const el = e.target.closest("button, input, a");
   if (!el) return;
 
@@ -73,25 +99,31 @@ function interceptClick(e) {
   const inCheckout = url.includes("/checkout") || url.includes("/gp/buy");
 
   if (!intent && !inCheckout) return;
-  // Synchronous — must happen before any async work
+
   e.preventDefault();
   e.stopPropagation();
 
   if (!blockedState) {
-    const item = { ...getProductData(), timestamp: Date.now() };
-    chrome.storage.local.set({ pendingItem: item });
-    blockedState = true;
+    try {
+      await setItem("pendingItem", { ...getProductData(), timestamp: Date.now() });
+      blockedState = true;
+      showOverlay("24h 0m");
+    } catch (err) {
+      console.error("Failed to save pendingItem:", err);
+    }
+    return;
   }
 
-  showOverlay();
+  loadBlockedState((blocked, timeRemaining) => {
+    showOverlay(timeRemaining || "soon");
+  });
 }
 
 function init() {
   document.addEventListener("click", interceptClick, true);
 
-  // Warm the cache, show overlay immediately if already blocked
-  loadBlockedState((blocked) => {
-    if (blocked) showOverlay();
+  loadBlockedState((blocked, timeRemaining) => {
+    if (blocked) showOverlay(timeRemaining);
   });
 }
 
