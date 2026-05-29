@@ -1,5 +1,5 @@
-// const COOLDOWN_MS = 24 * 60 * 60 * 1000; // for prod it'll be 24 hours
-const COOLDOWN_MS = 1 * 60 * 1000; // for testing let's shorten to 1 min
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // for prod it'll be 24 hours
+// const COOLDOWN_MS = 1 * 60 * 1000; // for testing let's shorten to 1 min
 
 const KEYWORDS = ["buy now", "place your order", "place order"];
 
